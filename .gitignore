@@ -1,0 +1,72 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/.next-demo/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
+
+# Claude Code
+.claude/
+
+# Temporary/debug files
+tmp_*.json
+ms_*.json
+temp_*.txt
+nul
+
+# User-generated reports and data files
+*.pdf
+*.xls
+*.xlsx
+*.png
+!scripts/sample-*.csv
+
+# Iconos PWA (fuente de la app, no informes generados)
+!public/icons/*.png
+!src/app/apple-icon.png
+# Capturas con datos sintéticos para el README de la copia pública
+!docs/*.png
+
+# ws: datos locales y evidencias quedan en la carpeta, fuera de git
+/backups/
+/notas/planes/evidencias-*/
+# ws: las fuentes del proyecto (PDF originales) sí se versionan
+!/fuentes/*.pdf

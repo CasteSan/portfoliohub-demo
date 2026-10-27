@@ -1,0 +1,20 @@
+{
+  "name": "portfoliohub-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pure TypeScript engines of PortfolioHub: Spanish tax (FIFO/IRPF), TWR/MWR, risk, ECB FX, broker import parsers and a synthetic dataset generator, with their tests.",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5",
+    "vitest": "^4.1.8"
+  }
+}
