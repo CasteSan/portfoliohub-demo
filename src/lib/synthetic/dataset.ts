@@ -21,7 +21,9 @@
  * - Fund transfers (traspaso) move the same number of shares at the fiscal
  *   cost of the origin (pricePerShare = origin avgCost), fees 0, with the
  *   taxMetadata the FIFO engine reads.
- * - DIVIDEND: grossAmount, withholdingTax, totalAmount = net.
+ * - DIVIDEND: grossAmount, withholdingTax; totalAmount = gross, as the app's
+ *   transactions API stores it (shares x gross per share); the engines read
+ *   grossAmount and withholdingTax and derive the net themselves.
  */
 
 // ---------------------------------------------------------------------------
@@ -703,7 +705,7 @@ class Ledger {
       shares: held,
       pricePerShare: perShare,
       fees: 0,
-      totalAmount: round(gross - withholding, 2),
+      totalAmount: gross,
       grossAmount: gross,
       withholdingTax: withholding,
       withholdingRate: ins.dividend.withholdingRate,
@@ -857,9 +859,12 @@ export function generateSyntheticDataset(options: SyntheticOptions = {}): Synthe
   // The scenario is declared per portfolio but must run in date order: a
   // sale or a transfer can only touch what was held on that day. Same day:
   // buys (0) before dividends (1) before sales and transfers (2) and fees (3).
+  // Steps dated outside [start, lastTradeMonth] are dropped: with a later
+  // `start` the fixed events (the 2023 transfer, the 2024 sale) simply do not
+  // happen instead of landing on the first calendar day.
   const plan: Array<{ date: string; order: number; run: () => void }> = [];
   const at = (date: string, order: number, run: () => void) => {
-    if (date.slice(0, 7) <= lastTradeMonth) plan.push({ date, order, run });
+    if (date >= start && date.slice(0, 7) <= lastTradeMonth) plan.push({ date, order, run });
   };
 
   // Portfolio 1: long term. Monthly contributions from the second month,

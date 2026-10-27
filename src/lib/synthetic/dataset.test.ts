@@ -157,7 +157,39 @@ describe("generateSyntheticDataset", () => {
     for (const d of dividends) {
       expect(d.grossAmount).toBeGreaterThan(0);
       expect(Math.abs(d.withholdingTax! - d.grossAmount! * d.withholdingRate!)).toBeLessThan(0.011);
-      expect(Math.abs(d.totalAmount - (d.grossAmount! - d.withholdingTax!))).toBeLessThan(0.011);
+      // As the app's API stores it: totalAmount = shares x gross per share
+      expect(d.totalAmount).toBe(d.grossAmount);
+      expect(Math.abs(d.totalAmount - d.shares * d.pricePerShare)).toBeLessThan(0.011);
+    }
+  });
+
+  it("never puts an inflow and an outflow of the same holding on the same day", () => {
+    // The app replays by tradeDate only (a @db.Date column), so same-day order
+    // is undefined there; the generator must not rely on its in-memory order.
+    const seen = new Map<string, Set<string>>();
+    for (const t of dataset.transactions) {
+      const key = `${t.date}/${t.portfolio}/${t.instrument}`;
+      const kinds = seen.get(key) ?? new Set<string>();
+      if (t.type === "BUY" || t.type === "TRANSFER_IN") kinds.add("in");
+      if (t.type === "SELL" || t.type === "TRANSFER_OUT") kinds.add("out");
+      seen.set(key, kinds);
+      expect(kinds.size, key).toBeLessThan(2);
+    }
+  });
+
+  it("agrees between the two replays: last snapshot invested = positions' shares x avgCostBase", () => {
+    const lastDate = dataset.prices[dataset.prices.length - 1].date;
+    for (const p of dataset.portfolios) {
+      const last = dataset.snapshots.filter((s) => s.portfolio === p.key).at(-1)!;
+      expect(last.date).toBe(lastDate);
+      const invested = dataset.positions
+        .filter((pos) => pos.portfolio === p.key)
+        .reduce((acc, pos) => acc + pos.shares * pos.avgCostBase, 0);
+      expect(Math.abs(last.totalInvested - invested)).toBeLessThan(0.5);
+      const value = dataset.positions
+        .filter((pos) => pos.portfolio === p.key)
+        .reduce((acc, pos) => acc + pos.shares * pos.currentPrice * (dataset.instruments.find((i) => i.key === pos.instrument)!.currency === "EUR" ? 1 : 1 / dataset.fxRates.at(-1)!.rate), 0);
+      expect(Math.abs(last.totalValue - value)).toBeLessThan(0.5);
     }
   });
 
